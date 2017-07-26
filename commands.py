@@ -1,4 +1,5 @@
 import os
+from subprocess import check_output
 
 from ranger.api.commands import Command
 from ranger.core.loader import CommandLoader
@@ -89,7 +90,7 @@ class mount(Command):  # {{{1
             res = args['process'].communicate()[0].decode('utf-8')
             if res:
                 self.fm.cd(res.split(' ')[3].split('.')[0])
-            self.fm.notify(res)
+            self.fm.notify(' '.join(msg))
             cwd = self.fm.get_directory(original_path)
             cwd.load_content()
 
@@ -97,16 +98,18 @@ class mount(Command):  # {{{1
         au_flags = ['mount', '-b']
 
         descr = 'mounting ...'
-        obj = CommandLoader(
-            args=['udisksctl'] + au_flags + [f.path for f in marked_files],
-            descr=descr)
+        msg = ['Mounted']
+        for file in marked_files:
+            obj = CommandLoader(
+                args=['udisksctl'] + au_flags + [file.path], descr=descr)
+            self.fm.loader.add(obj)
+            msg.append('"' + file.path + '"')
 
         obj.signal_bind('after', refresh)
-        self.fm.loader.add(obj)
 
 
 class unmount(Command):  # {{{1
-    def execute(self):
+    def execute(self):  # {{{2
         cwd = self.fm.thisdir
         marked_files = cwd.get_selection()
 
@@ -114,7 +117,7 @@ class unmount(Command):  # {{{1
             return
 
         def refresh(args):
-            self.fm.notify(args['process'].communicate()[0].decode('utf-8'))
+            self.fm.notify(' '.join(msg))
             cwd = self.fm.get_directory(original_path)
             cwd.load_content()
 
@@ -122,9 +125,20 @@ class unmount(Command):  # {{{1
         au_flags = ['unmount', '-b']
 
         descr = 'Unmounting ...'
-        obj = CommandLoader(
-            args=['udisksctl'] + au_flags + [f.path for f in marked_files],
-            descr=descr)
+        msg = ['Unmounted']
+        for file in marked_files:
+            obj = CommandLoader(
+                args=['udisksctl'] + au_flags +
+                [self.checkMountList(file.path)],
+                descr=descr)
+            self.fm.loader.add(obj)
+            msg.append('"' + file.path + '"')
 
         obj.signal_bind('after', refresh)
-        self.fm.loader.add(obj)
+
+    def checkMountList(self, path):  # {{{2
+        mount_output = check_output(['mount']).decode('utf-8').split('\n')[:-1]
+        res = [m.split()[0] for m in mount_output if m.split()[2] == path]
+        if res:
+            res = res[0]
+        return res or path
