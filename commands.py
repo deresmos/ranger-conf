@@ -142,3 +142,54 @@ class unmount(Command):  # {{{1
         if res:
             res = res[0]
         return res or path
+
+
+class resize_image(Command):  # {{{1
+    def execute(self):  # {{{2
+        cwd = self.fm.thisdir
+        marked_files = cwd.get_selection()
+
+        if not marked_files:
+            return
+
+        def refresh(args):
+            self.fm.notify(' '.join(msg))
+            cwd = self.fm.get_directory(original_path)
+            cwd.load_content()
+
+        original_path = cwd.path
+        au_flags = ['-resize']
+        size = self.line.split()[1]
+        if 'x' not in size:
+            size = size + '%'
+        au_flags += [size]
+
+        if not os.path.isdir(os.path.join(original_path, 'resize')):
+            os.mkdir(os.path.join(original_path, 'resize'))
+
+        src_paths = [file.path for file in marked_files]
+        # Set dest paths {{{
+        dest_paths = []
+        if len(self.line.split()) == 2:
+            for path in src_paths:
+                dir_path, filename = os.path.split(path)
+                filena, ext = os.path.splitext(filename)
+                dest_paths.append(
+                    os.path.join(dir_path, 'resize', filena + '_' + size +
+                                 ext))
+        else:
+            dest_paths = [
+                os.path.join(original_path, 'resize', self.line.split()[2])
+            ]
+        # }}}
+
+        descr = 'Resizing ...'
+        msg = ['Resized']
+        for i, path in enumerate(dest_paths):
+            src_path = src_paths if (
+                len(self.line.split()) > 2) else src_paths[i:i + 1]
+            obj = CommandLoader(
+                args=['convert'] + au_flags + src_path + [path], descr=descr)
+
+            self.fm.loader.add(obj)
+        obj.signal_bind('after', refresh)
