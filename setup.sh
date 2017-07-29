@@ -1,13 +1,13 @@
 #! /bin/bash
-RANGER_DIR_PATH=~/.config/ranger
 
-if [[ ! -d $RANGER_DIR_PATH ]]; then
-  mkdir -p $RANGER_DIR_PATH
-fi
+[[ $XDG_CONFIG_HOME ]] && path=$XDG_CONFIG_HOME || path=~/.config
+RANGER_CONFIG_PATH=$path'/ranger'
+
+[[ ! -d $RANGER_CONFIG_PATH ]] && mkdir -p $RANGER_CONFIG_PATH
 
 script_dir=$(cd $(dirname $0); pwd)
 
 set -x
 
-ln -sf $script_dir/commands.py $RANGER_DIR_PATH/
-ln -sf $script_dir/rc.conf $RANGER_DIR_PATH/
+ln -sf $script_dir/commands.py $RANGER_CONFIG_PATH/
+ln -sf $script_dir/rc.conf $RANGER_CONFIG_PATH/
