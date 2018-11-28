@@ -48,15 +48,20 @@ safepipe() { "$@"; test $? = 0 -o $? = 141; }
 
 # Image previews, if enabled in ranger.
 if [ "$preview_images" = "True" ]; then
+    case "$extension" in
+      svg)
+        convert "$path" "$cached" && exit 6 || exit 1;;
+    esac
+
     case "$mimetype" in
         # Image previews for SVG files, disabled by default.
-        ###image/svg+xml)
-        ###   convert "$path" "$cached" && exit 6 || exit 1;;
+        image/svg+xml)
+          convert "$path" "$cached" && exit 6 || exit 1;;
         # Image previews for image files. w3mimgdisplay will be called for all
         # image files (unless overriden as above), but might fail for
         # unsupported types.
         image/*)
-          convert "$path[0]" "$cached" && exit 6 || exit 1;;
+          exit 7 || exit 1;;
         # Image preview for video, disabled by default.:
         video/*)
           ffmpegthumbnailer -i "$path" -o "$cached" -s 0 && exit 6 || exit 1;;
