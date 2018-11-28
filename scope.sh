@@ -56,7 +56,7 @@ if [ "$preview_images" = "True" ]; then
         # image files (unless overriden as above), but might fail for
         # unsupported types.
         image/*)
-          convert "$path" "$cached" && exit 6 || exit 1;;
+          convert "$path[0]" "$cached" && exit 6 || exit 1;;
         # Image preview for video, disabled by default.:
         video/*)
           ffmpegthumbnailer -i "$path" -o "$cached" -s 0 && exit 6 || exit 1;;
