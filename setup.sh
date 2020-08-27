@@ -12,3 +12,4 @@ set -x
 ln -sf $script_dir/commands.py $RANGER_CONFIG_PATH/
 ln -sf $script_dir/rc.conf $RANGER_CONFIG_PATH/
 ln -sf $script_dir/scope.sh $RANGER_CONFIG_PATH/
+ln -sf $script_dir/rifle.sh $RANGER_CONFIG_PATH/
